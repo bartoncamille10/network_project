@@ -1,10 +1,9 @@
 -- table contenant les Clients
 DROP TABLE IF EXISTS Client;
 CREATE TABLE Client (
-    id SERIAL PRIMARY KEY,  -- Utilisation de SERIAL pour générer automatiquement l'id
-    prenom VARCHAR(30),
-    nom VARCHAR(30),
-    solde FLOAT DEFAULT 0
+    account SERIAL PRIMARY KEY,  -- Utilisation de SERIAL pour générer automatiquement l'id
+    currency VARCHAR(10) NOT NULL,
+    balance FLOAT DEFAULT 
 );
 
 -- table contenant les transactions
@@ -14,22 +13,22 @@ CREATE TABLE Transaction (
     client_source INTEGER NOT NULL,
     client_dest INTEGER NOT NULL,
     montant FLOAT NOT NULL,
-    date_transaction TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,  -- Utilisation de TIMESTAMPTZ
-    FOREIGN KEY (client_source) REFERENCES Client(id),
-    FOREIGN KEY (client_dest) REFERENCES Client(id)
+    date_transaction TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,  
+    FOREIGN KEY (client_source) REFERENCES Client(account),
+    FOREIGN KEY (client_dest) REFERENCES Client(account)
 );
 
 -- insert des données dans la table Client
-INSERT INTO Client(prenom, nom, solde)
+INSERT INTO Client(currency, balance)
     VALUES 
-        ('Barton', 'Camille', 50),
-        ('Mlika', 'Imen', 50),
-        ('Mazeau', 'Clément', 50),
-        ('Lecouffe', 'Eric', 50),
-        ('Lucas', 'Joshua', 50);
+        ('EUR', 50),
+        ('EUR', 50),
+        ('EUR', 50),
+        ('EUR', 50),
+        ('EUR', 50);
 
 -- insert des données dans la table Transaction
-INSERT INTO Transaction(client_source, client_dest, montant)
-    VALUES
-        (1, 2, 10),
-        (2, 3, 10);
+-- INSERT INTO Transaction(client_source, client_dest, montant)
+--     VALUES
+--         (1, 2, 10),
+--         (2, 3, 10);
