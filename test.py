@@ -1,57 +1,69 @@
-# Import de bibliothèques
 import flask
 from flask import request, jsonify
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
+
 # Quelques données tests pour l’annuaire sous la forme d’une liste de dictionnaires
-employees = [
+clients = [
    {'id': 0,
-	'Nom': 'Dupont',
-	'Prenom': 'Jean',
-	'Fonction': 'Développeur',
-	'Ancienneté': '5'},
+	'nom': 'Dupont',
+	'prenom': 'Jean',
+	'solde': 100,
+	},
    {'id': 1,
-	'Nom': 'Durand',
-	'Prenom': 'Elodie',
-	'Fonction': 'Directrice Commerciale',
-	'Ancienneté': '4'},
+	'nom': 'Durand',
+	'prenom': 'Elodie',
+	'solde': 10000,
+   },
    {'id': 2,
-	'Nom': 'Lucas',
-	'Prenom': 'Jeremie',
-	'Fonction': 'DRH',
-	'Ancienneté': '4'}
+	'nom': 'Luca',
+	'prenom': 'Anna',
+	'solde': 1500,
+	}
 ]
 
+def used_id(list=clients):
+   result=[]
+   for i in range len(clients):
+      for key, value in i:
+         result.append(value)
+   return result
+
+# Route permettant de récupérer toutes les données de l’annuaire
 @app.route('/', methods=['GET'])
 def home():
-    return '''<h1>Annuaire Internet</h1> <p>Ce site est le prototype d’une API mettant à disposition des données sur les employés d’une entreprise.</p>'''
- 
- 
-@app.route('/api/v1/resources/employees/all', methods=['GET'])
-def api_all():
-    return jsonify(employees)
- 
- 
-@app.route('/api/v1/resources/employees', methods=['GET'])
-def api_id():
+   return "<h1>API PUBLIQUE</h1><p>Prototype dune API publique mettant à disposition ces comptes bancaires des utilisateurs de MyLittleBank</p>"
+
+@app.route('/create_account', methods=['POST'])
+def create_account(list_clients=clients):
+   if request.method == 'POST':
+      id_user=list_clients[len()]
+      first_name = request.form['firstname']
+      last_name = request.form['lastname']
+      solde = 0
+
+      if id_user in users :
+         clients.append()
+         return (id_user, first_name, last_name, solde)
+      else:
+         return '<h1>invalid credentials!</h1>'
+    else:
+        return render_template('login.html')
+
+@app.route('/api/v1/resources/clients', methods=['GET'])
+def api_get_id():
     # Vérifie si un ID est fourni dans une URL.
     # Si un ID est fourni, il est affecté à une variable.
     # Si aucun ID n’est fourni, un message d’erreur est affiché dans le navigateur.
     if 'id' in request.args:
         id = int(request.args['id'])
+        return jsonify(clients[id])
     else:
-        return "Erreur: Pas d’identifiant fourni. Veuillez spécifier un id."
- 
-    # Crée une liste vide pour stocker les résultats
-    results = []
- 
-    # Boucle sur les données pour obtenir les résultats correspondant à l’ID fourni.
-    # Les IDs sont uniques, mais les autres champs peuvent renvoyer plusieurs résultats
-    for employee in employees:
-        if employee['id'] == id:
-            results.append(employee)
+        return "Erreur: Pas d'identifiant fourni. Veuillez spécifier un id."
 
-    return jsonify(results)
- 
+@app.route('/api/v1/resources/clients/', methods=['GET'])
+def api_all():
+    return jsonify(clients)
+
 app.run()
