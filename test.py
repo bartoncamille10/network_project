@@ -25,7 +25,7 @@ clients = [
 
 def used_id(list=clients):
    result=[]
-   for i in range len(clients):
+   for i in range clients.len():
       for key, value in i:
          result.append(value)
    return result
