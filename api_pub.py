@@ -23,15 +23,33 @@ clients = [
 	}
 ]
 
+def used_id(list=clients):
+   result=[]
+   for i in range len(clients):
+      for key, value in i:
+         result.append(value)
+   return result
 
 # Route permettant de récupérer toutes les données de l’annuaire
 @app.route('/', methods=['GET'])
 def home():
-   return "<h1>Annuaire Internet</h1><p>Prototype dune API publique mettant à disposition ces comptes bancaires des utilisateurs de MyLittleBank</p>"
+   return "<h1>API PUBLIQUE</h1><p>Prototype dune API publique mettant à disposition ces comptes bancaires des utilisateurs de MyLittleBank</p>"
 
-@app.route('/api/v1/resources/clients/', methods=['GET'])
-def api_all():
-    return jsonify(clients)
+@app.route('/create_account', methods=['POST'])
+def create_account(list_clients=clients):
+   if request.method == 'POST':
+      id_user=list_clients[len()]
+      first_name = request.form['firstname']
+      last_name = request.form['lastname']
+      solde = 0
+
+      if id_user in users :
+         clients.append()
+         return (id_user, first_name, last_name, solde)
+      else:
+         return '<h1>invalid credentials!</h1>'
+    else:
+        return render_template('login.html')
 
 @app.route('/api/v1/resources/clients', methods=['GET'])
 def api_get_id():
