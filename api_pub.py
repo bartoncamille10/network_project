@@ -17,7 +17,7 @@ clients = [
 	'solde': 10000,
    },
    {'id': 2,
-	'nom': 'Lucas',
+	'nom': 'Luca',
 	'prenom': 'Anna',
 	'solde': 1500,
 	}
