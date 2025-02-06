@@ -1,8 +1,8 @@
 import psycopg2, requests
-
 try:
     connection = psycopg2.connect(user="postgres",
-                                password="postgres",                                    host="localhost",
+                                password="postgres",     
+                                host="localhost",
                                 database="network_project_db")
     cursor = connection.cursor()
 except (Exception, psycopg2.Error) as error:
@@ -26,7 +26,7 @@ def close_connection():
 
 
 
-# pub 
+# API PUBLIC
 # def transaction():
 
 
@@ -38,8 +38,9 @@ def check_user(id):
     except (Exception, psycopg2.Error) as error:
         print("Error, user not found", error)
 
-def create_account(user):
-    if(not check_user(user)):
+def create_account(id):
+    user = check_user(id)
+    if not user:
         url = "http://localhost:5000/create_account"
         response = requests.get(url)
         if(response.status_code == 200):
@@ -60,7 +61,7 @@ def get_balance(account_id):
         print("Erreur lors de la récupération du solde:", response.status_code)
 
 # Exemple d'appel
-get_balance(789123)
+# get_balance(789123)
 
         
 # def creation():
@@ -79,7 +80,6 @@ get_balance(789123)
 #         print("Error, user not found", error)
 
 if __name__ == '__main__':
-    # while(1):
-    #     continue
-    recupererLesInfos("Camille")
+    check_user(3)
+    get_balance(1)
     close_connection()
