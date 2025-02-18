@@ -1,138 +1,146 @@
+from datetime import datetime
 import flask
 from flask import *
-import urllib.parse
 
 #python3 api_pub.py
-#curl http://127.0.0.1:5000/clients?account=7
-#curl -X POST --data '{"balance":2}' -H "Content-Type: application/json" http://127.0.0.1:5000/account
+#curl http://127.0.0.1:5000/account/7/balance
+#curl -X POST --data '{"balance": 1000}' -H "Content-Type: application/json" http://127.0.0.1:5000/account
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
 
-#bdd TEST
+
+######################################################################################################################################
+#récupération de la BDD
 clients = [
    {'account': 0, 
    'currency':"EUR",
 	'balance': 100,
    'transaction-list':[
-      {'client_source': 0, 
-      'client_dest':2,
+      {'label': "operation A",
       'amount': 100,
       'date_transaction': 1739791517}, 
 
-      {'client_source': 2, 
-      'client_dest':20,
-      'amount': 10,
+      {'label':"operation B",
+      'amount': 150,
       'date_transaction': 1736507753},
 
-      {'client_source': 0, 
-      'client_dest':2,
-      'amount': 2,
+      {'label':"operation C",
+      'amount': 72,
       'date_transaction': 1731237353}]
 	},
    {'account': 2, 
    'currency':"EUR",
 	'balance': 100,
    'transaction-list':[
-      {'client_source': 0, 
-      'client_dest':2,
+      {'label':"operation E",
       'amount': 100,
-      'date_transaction': 1737458153}, 
+      'timestamp': 1737458153}, 
 
-      {'client_source': 2, 
-      'client_dest':20,
+      {'label':"operation F",
       'amount': 10,
-      'date_transaction': 1735643753},
+      'timestamp': 1735643753},
 
-      {'client_source': 0, 
-      'client_dest':2,
-      'amount': 2,
-      'date_transaction': 1728555353}]
+      {'label':"operation G",
+      'amount': 52,
+      'timestamp': 1728555353}]
    },
    {'account': 6, 
    'currency':"EUR",
 	'balance': 100,
    'transaction-list':[
-      {'client_source': 0, 
-      'client_dest':2,
+      {'label':"operation H",
       'amount': 100,
-      'date_transaction': 1737976553}, 
+      'timestamp': 1737976553}, 
 
-      {'client_source': 2, 
-      'client_dest':20,
+      {'label':"operation I",
       'amount': 10,
-      'date_transaction': 1736680553},
+      'timestamp': 1736680553},
 
-      {'client_source': 0, 
-      'client_dest':2,
+      {'label':"operation J",
       'amount': 2,
-      'date_transaction': 1736507753},
+      'timestamp': 1736507753},
 
-      {'client_source': 0, 
-      'client_dest':2,
-      'amount': 2,
-      'date_transaction': 1765192553},
+      {'label':"operation K",
+      'amount': 25,
+      'timestamp': 1765192553},
 
-      {'client_source': 0, 
-      'client_dest':2,
+      {'label': "operation L",
       'amount': 2,
-      'date_transaction': 1764587753}]
+      'timestamp': 1764587753}]
 	}
 ]
 
 
+######################################################################################################################################
+
 def get_account(account_number):
+   """fonction peremttant de récupérer les infos d'un compte en particulier"""
    index=0
-   try :
+   account_number_tester=clients[index]["account"]
+   while account_number_tester!=account_number and index<len(clients):
+      index+=1
       account_number_tester=clients[index]["account"]
-   except:
-      while account_number_tester!=account_number and index<len(clients):
-         index+=1
-         account_number_tester=clients[index]["account"]
 
    if index==len(clients) and account_number_tester!=account_number:
-      return "Erreur: le compte que vous recherchez n'existe pas chez nous. Veuillez réessayer."
+      return "Erreur"
    else:
       return clients[index]
 
 
 def all_used_id():
+   """fonction permettant de lister tous les id utilisés dans la BDD"""
    result=[]
    for i in range(len(clients)):
          result.append(clients[i]['account'])
    return result
 
+
 def last_id():
+   """fonction permettant de calculer le dernier id utilisé"""
    return clients[-1]['account']
 
+######################################################################################################################################
 
 @app.route('/', methods=['GET'])
 def home():
-   result=all_used_id()
-   return result
-   #return "<h1>API PUBLIQUE</h1><p>API publique mettant à disposition ces comptes bancaires des utilisateurs de MyLittleBank</p>"
+   return "<h1>API PUBLIQUE</h1><p>API publique mettant à disposition ces comptes bancaires des utilisateurs de MyLittleBank</p>"
 
+######################################################################################################################################
 
 @app.route('/account', methods=['POST'])
 def api_create_account():
    """fonction créant un compte avec une méthode POST"""
-   if request.method == 'POST':
-      id_user=last_id()+1
-      solde=request.get_json()
+   id_user=last_id()+1
+   account=request.get_json()
+   try :
+      solde=int(account['balance'])
+   except:
+      return "Paramètres invalides", 400 
+   
+   clients.append({'account': id_user, 'currency': "EUR", 'balance': solde,'transaction-list':[]})
+   selected_account=get_account(id_user)
+   account_number=selected_account["account"]
+   account_currency=selected_account["currency"]
+   account_balance=selected_account["balance"]
+               
+   result={
+      'account': account_number,
+      'currency': account_currency,
+      'balance': account_balance
+   }
+   return result, 200
 
-      clients.append({'account': id_user, 'currency': "EUR", 'balance': solde["balance"]}, '')
-   return (clients)
-
-
+######################################################################################################################################
 
 @app.route('/account/<account>/balance', methods=['GET'])
-def api_get_balance(account): #?account=x
+def api_get_balance(account): 
    """fonction permettant d'obtenir le solde d'un compte spécifique"""
    result=all_used_id()
    try:
       compte=int(account)
    except:
-      return "<title>400 Not Found</title><h1>404 Not Found</h1><p>Identifiant invalide</p>"
+      return "Identifiant invalide", 400 
    
    if compte in result:
       selected_account=get_account(compte)
@@ -145,63 +153,89 @@ def api_get_balance(account): #?account=x
          'currency': account_currency,
          'balance': account_balance
       }
+      return result, 200
+   else :
+      return "Compte introuvable", 404
+
+
+######################################################################################################################################
+
+@app.route('/account/<account>/details', methods=['GET'])
+def api_get_details(account): 
+   """fonction permettant d'obtenir le solde d'un compte spécifique"""
+   try:
+      compte=int(account)
+   except:
+      return "Identifiant invalide", 400
+   
+   result=all_used_id()
+   if compte in result:
+      selected_account=get_account(compte)
+      account_number=selected_account["account"]
+      account_currency=selected_account["currency"]
+      account_balance=selected_account["balance"]
+      account_details=selected_account["transaction-list"]
+
+               
+      result= {
+         'account': account_number,
+         'currency': account_currency,
+         'balance': account_balance,
+         'operations' : account_details
+      }
       return result
    else :
-      return "<title>404 Not Found</title><h1>404 Not Found</h1><p>Compte introuvable</p>"
-   
+      return "Compte introuvable", 404
 
-
-
-@app.route('/api/v1/resources/clients/balance', methods=['GET'])
-def balance():
-    if 'account' in request.args:
-        compte = int(request.args['account'])
-        selected_account = next((c for c in clients if c['account'] == compte), None)
-        if selected_account:
-            response = {
-                "account": selected_account["account"],
-                "currency": selected_account["currency"],
-                "balance": selected_account["balance"],
-                #"operations": selected_account["operations"]
-            }
-            return jsonify(response)
-        else:
-            return jsonify({'error': 'Compte non trouvé'}), 404
-    else:
-        return jsonify({"error": "Erreur: Pas d'identifiant fourni. Veuillez spécifier un id."}), 400
-
-
-@app.route('/api/v1/resources/clients/virement', methods=['POST'])
-def virement():
+######################################################################################################################################
+#curl -X POST http://127.0.0.1:5000/account/0/transfer -H "Content-Type: application/json" -d '{"amount": 5.5,"currency": "EUR","label": "Virement Maman","recipient": 2}'
+@app.route('/account/<account>/transfer', methods=['POST'])
+def virement(account):
     data = request.get_json()
-
     # Vérification des paramètres fournis
-    if not all(key in data for key in ('account', 'currency', 'balance')):
-        return jsonify({'error': 'Paramètres manquants'}), 400
+    if not all(key in data for key in ('recipient', 'amount', 'label', 'currency')):
+        return "Paramètres manquants", 400
 
-    id_source = data['account']
-    id_dest = data['currency']
-    montant = data['balance']
+    id_source = int(account)
+    id_dest = data['recipient']
+    montant = data['amount']
+    label = data['label']
+    currency = data['currency']
 
     # Vérification des comptes source et destination
     client_source = next((c for c in clients if c['account'] == id_source), None)
     client_dest = next((c for c in clients if c['account'] == id_dest), None)
 
     if client_source is None or client_dest is None:
-        return jsonify({'error': 'Un des comptes n\'existe pas'}), 404
+        return "Paramètres invalides", 400
 
     # Vérification du solde suffisant
     if client_source['balance'] < montant:
-        return jsonify({'error': 'Solde insuffisant'}), 400
+        return "Solde insuffisant", 404
 
     # Effectuer le virement
     client_source['balance'] -= montant
     client_dest['balance'] += montant
 
-    return jsonify({
-        'message': 'Virement effectué avec succès',
-        'nouveau_solde_source': client_source['balance'],
-        'nouveau_solde_dest': client_dest['balance']
-    }), 200
+    now = datetime.now()
+    timestamp = datetime.timestamp(now)
+    #label= "from " + str(id_dest) + " to " + str(id_source) + " the " +str(now) #for test purposes
+
+    transaction = {
+        'timestamp': int(timestamp),
+        'label': label,
+        'amount': montant        
+    }
+    
+    client_source['transaction-list'].append(transaction)
+    client_dest['transaction-list'].append(transaction)
+
+   #  return (jsonify({
+   #      'message': 'Virement effectue avec succes',
+   #      'nouveau_solde_source': client_source['balance'],
+   #      'nouveau_solde_dest': client_dest['balance'],
+   #      'transaction': transaction
+   #  }))
+    return "Réussi", 200
 
 app.run()
