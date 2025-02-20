@@ -2,8 +2,11 @@ import psycopg2
 import random
 from flask import Flask, jsonify, request
 import requests
+import json
+from decimal import Decimal
 
 app = Flask(__name__)
+list_account = []
 
 # Connexion à la base de données PostgreSQL
 try:
@@ -20,15 +23,38 @@ def close_connection():
     cursor.close()
     connection.close()
 
+def custom_encoder(obj):
+    if isinstance(obj, tuple):
+        return {'__tuple__': True, 'items': list(obj)}
+    return obj
+
+
+
 def check_user(account_id):
-    """Vérifie si un utilisateur existe dans la base de données."""
     try:
         query = "SELECT * FROM Client WHERE account = %s;"
         cursor.execute(query, (account_id,))
-        return cursor.fetchone() is not None
+        response = cursor.fetchone()
+
+        if response is None:
+            return json.dumps({"error": "Utilisateur non trouvé"})
+
+        # mapping des colonnes avec leurs valeurs
+        column_names = [desc[0] for desc in cursor.description]
+        response_dict = dict(zip(column_names, response))
+
+        #conversion des decimals en float pour le JSON
+        for key, value in response_dict.items():
+            if isinstance(value, Decimal):
+                response_dict[key] = float(value)
+        list_account.append(response_dict)
+        print(list_account)
+        return list_account
+    
     except (Exception, psycopg2.Error) as error:
         print("Erreur lors de la vérification de l'utilisateur:", error)
-        return False
+        return json.dumps({"error": str(error)})
+
 
 def get_balance_from_db(account):
     """Récupère le solde du compte depuis la base de données."""
@@ -36,7 +62,13 @@ def get_balance_from_db(account):
         query = "SELECT balance FROM Client WHERE account = %s;"
         cursor.execute(query, (account,))
         result = cursor.fetchone()
-        return result[0] if result else None
+        
+        if result and isinstance(result[0], Decimal):
+            result = float(result[0])  # conversion du Decimal en float
+        
+        print(result)
+        return result  # Retourne directement le solde sous forme de float ou None si rien n'est trouvé
+
     except Exception as error:
         print("Erreur get_balance_from_db:", error)
         return None
@@ -123,5 +155,7 @@ def account_exists(account):
     
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    check_user(20)
+    get_balance_from_db(20)
+    #app.run(debug=True)
     close_connection()
